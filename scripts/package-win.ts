@@ -101,7 +101,7 @@ async function packageOnWindowsHost(): Promise<number> {
 
   rmSync(stage, { recursive: true, force: true });
   mkdirSync(stage, { recursive: true });
-  for (const dir of ['dist', 'dist-electron']) {
+  for (const dir of ['dist', 'dist-electron', 'build']) {
     cpSync(path.join(root, dir), path.join(stage, dir), { recursive: true });
   }
   // Everything the app loads at runtime is bundled into dist/ and dist-electron/, and the host

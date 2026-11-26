@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Darkroom obsidian squircle background -->
+    <linearGradient id="bgGrad" x1="12%" y1="6%" x2="88%" y2="96%">
+      <stop offset="0%" stop-color="#24242e" />
+      <stop offset="48%" stop-color="#14141a" />
+      <stop offset="100%" stop-color="#09090c" />
+    </linearGradient>
+
+    <!-- Subtle top-left specular rim on outer squircle -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.14" />
+    </linearGradient>
+
+    <!-- Warm amber ambient glow behind optical center -->
+    <radialGradient id="amberHalo" cx="50%" cy="50%" r="44%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32" />
+      <stop offset="45%" stop-color="#d97706" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#09090c" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Lens barrel glass fill -->
+    <radialGradient id="lensGlass" cx="42%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#23232f" />
+      <stop offset="55%" stop-color="#111117" />
+      <stop offset="100%" stop-color="#09090d" />
+    </radialGradient>
+
+    <!-- Machined metal ring gradient -->
+    <linearGradient id="lensRing" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#525266" />
+      <stop offset="50%" stop-color="#272733" />
+      <stop offset="100%" stop-color="#3f3f50" />
+    </linearGradient>
+
+    <!-- Viewfinder corner brackets (anodized silver-titanium) -->
+    <linearGradient id="bracketGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f4f4f8" />
+      <stop offset="55%" stop-color="#d4d4de" />
+      <stop offset="100%" stop-color="#9a9aa8" />
+    </linearGradient>
+
+    <!-- Luminous amber keeper star -->
+    <linearGradient id="starGrad" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="42%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- Soft glow filter for the keeper star -->
+    <filter id="starGlow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="20" result="blur" />
+      <feColorMatrix
+        in="blur"
+        type="matrix"
+        values="1 0 0 0 0
+                0 0.72 0 0 0
+                0 0 0.1 0 0
+                0 0 0 0.55 0"
+        result="coloredBlur"
+      />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Subtle shadow under brackets -->
+    <filter id="softShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.55" />
+    </filter>
+
+    <!-- Clip for aperture blades inside lens -->
+    <clipPath id="lensClip">
+      <circle cx="512" cy="512" r="228" />
+    </clipPath>
+  </defs>
+
+  <!-- Outer rounded squircle container -->
+  <rect x="48" y="48" width="928" height="928" rx="212" fill="url(#bgGrad)" />
+
+  <!-- Ambient warm center glow -->
+  <rect x="48" y="48" width="928" height="928" rx="212" fill="url(#amberHalo)" />
+
+  <!-- Crisp inner specular border -->
+  <rect
+    x="52"
+    y="52"
+    width="920"
+    height="920"
+    rx="208"
+    fill="none"
+    stroke="url(#rimGrad)"
+    stroke-width="8"
+  />
+
+  <!-- Optical lens barrel -->
+  <circle cx="512" cy="512" r="246" fill="#0a0a0e" stroke="url(#lensRing)" stroke-width="14" />
+  <circle cx="512" cy="512" r="228" fill="url(#lensGlass)" />
+
+  <!-- 6-blade symmetric shutter/aperture iris lines -->
+  <g clip-path="url(#lensClip)" opacity="0.6">
+    <g stroke="#3a3a4c" stroke-width="4" fill="none">
+      <line x1="350" y1="328" x2="674" y2="328" transform="rotate(15 512 512)" />
+      <line x1="350" y1="328" x2="674" y2="328" transform="rotate(75 512 512)" />
+      <line x1="350" y1="328" x2="674" y2="328" transform="rotate(135 512 512)" />
+      <line x1="350" y1="328" x2="674" y2="328" transform="rotate(195 512 512)" />
+      <line x1="350" y1="328" x2="674" y2="328" transform="rotate(255 512 512)" />
+      <line x1="350" y1="328" x2="674" y2="328" transform="rotate(315 512 512)" />
+    </g>
+    <!-- Subtle glass lens reflection arc -->
+    <path
+      d="M 332 372 A 212 212 0 0 1 650 344"
+      fill="none"
+      stroke="#ffffff"
+      stroke-opacity="0.09"
+      stroke-width="16"
+      stroke-linecap="round"
+    />
+  </g>
+
+  <!-- Inner amber optical focus ring + cardinal AF ticks -->
+  <circle
+    cx="512"
+    cy="512"
+    r="184"
+    fill="none"
+    stroke="#f59e0b"
+    stroke-opacity="0.28"
+    stroke-width="5"
+  />
+  <g stroke="#f59e0b" stroke-opacity="0.65" stroke-width="7" stroke-linecap="round">
+    <line x1="512" y1="306" x2="512" y2="334" />
+    <line x1="512" y1="690" x2="512" y2="718" />
+    <line x1="306" y1="512" x2="334" y2="512" />
+    <line x1="690" y1="512" x2="718" y2="512" />
+  </g>
+
+  <!-- Precision Viewfinder / Autofocus Corner Brackets -->
+  <g
+    fill="none"
+    stroke="url(#bracketGrad)"
+    stroke-width="36"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#softShadow)"
+  >
+    <!-- Top-Left -->
+    <path d="M 192 318 L 192 224 Q 192 192 224 192 L 318 192" />
+    <!-- Top-Right -->
+    <path d="M 706 192 L 800 192 Q 832 192 832 224 L 832 318" />
+    <!-- Bottom-Right -->
+    <path d="M 832 706 L 832 800 Q 832 832 800 832 L 706 832" />
+    <!-- Bottom-Left -->
+    <path d="M 318 832 L 224 832 Q 192 832 192 800 L 192 706" />
+  </g>
+
+  <!-- Luminous Amber 5-Point Keeper Star (optically centered at cy=526, R=146, r=62) -->
+  <g filter="url(#starGlow)">
+    <polygon
+      points="512,380 548.4,475.8 650.9,480.9 571.0,545.2 597.8,644.1 512,588.0 426.2,644.1 453.0,545.2 373.1,480.9 475.6,475.8"
+      fill="url(#starGrad)"
+      stroke="#fef9c3"
+      stroke-opacity="0.65"
+      stroke-width="5"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>

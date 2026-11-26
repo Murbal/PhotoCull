@@ -353,6 +353,8 @@ function registerIpcHandlers(): void {
 async function createMainWindow(): Promise<void> {
   const bounds = await loadWindowBounds();
 
+  const appRoot = app.getAppPath();
+
   const win = new BrowserWindow({
     width: bounds.width,
     height: bounds.height,
@@ -366,7 +368,7 @@ async function createMainWindow(): Promise<void> {
     title: 'PhotoCull — Ultra-Fast RAW Photo Culling',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.join(appRoot, 'dist-electron', 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -396,7 +398,7 @@ async function createMainWindow(): Promise<void> {
   if (devUrl) {
     await win.loadURL(devUrl);
   } else {
-    const indexHtml = path.join(__dirname, '../dist/index.html');
+    const indexHtml = path.join(appRoot, 'dist', 'index.html');
     await win.loadFile(indexHtml);
   }
 }

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-electron/
+dist-server/
+release/
+.DS_Store
+*.log
+demo-shoot/
+PhotoCull-Demo-Shoot/
+.PhotoCull_Trash/

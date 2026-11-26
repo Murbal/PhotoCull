@@ -1,0 +1,74 @@
+{
+  "name": "photocull",
+  "version": "0.1.0",
+  "description": "Ultra-fast keyboard-first RAW photo culling desktop application with zero-catalog filesystem operation and standard XMP sidecar interoperability",
+  "author": "PhotoCull",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "trustedDependencies": [
+    "electron"
+  ],
+  "bin": {
+    "photocull": "./bin/photocull.js"
+  },
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "dev:web": "bun run scripts/dev-web.ts",
+    "dev:client": "vite",
+    "build:electron": "bun run scripts/build-electron.ts",
+    "build": "vite build && bun run build:electron",
+    "start": "bun run scripts/start-electron.ts",
+    "start:web": "bun run server/index.ts",
+    "package": "bun run build && electron-builder",
+    "package:dir": "bun run build && electron-builder --dir",
+    "package:win": "bun run scripts/package-win.ts",
+    "package:win:zip": "bun run scripts/package-win.ts zip",
+    "package:win:nsis": "bun run scripts/package-win.ts nsis",
+    "package:win:portable": "bun run scripts/package-win.ts portable",
+    "package:win:dir": "bun run scripts/package-win.ts --dir",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "demo-shoot": "bun run scripts/generate-demo.ts"
+  },
+  "build": {
+    "appId": "app.photocull.desktop",
+    "productName": "PhotoCull",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Graphics"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.photography"
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    }
+  },
+  "dependencies": {
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.7",
+    "@types/bun": "^1.4.5",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^4.5.0",
+    "electron": "^45.5.0",
+    "electron-builder": "^26.18.0",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

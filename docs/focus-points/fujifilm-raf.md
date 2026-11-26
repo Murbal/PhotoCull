@@ -152,7 +152,7 @@ No new dependencies are required. All building blocks already exist in `server/r
 
 Use these real measurements to write unit tests in `tests/raw-and-xmp.test.ts` (including synthetic minimal RAF/TIFF buffers containing the exact 12-byte MakerNote entries):
 
-### Binary Byte-Level Fixture (`20261122-110.RAF`, X-T5 Ver4.31)
+### Binary Byte-Level Fixture (`sample-01.RAF`, X-T5 Ver4.31)
 - Embedded JPEG: `offset = 148`, `length = 5472022`, `4416 × 2944`
 - `IFD0` `Orientation` (`0x0112`) at file byte `194` (`0x00C2`):
   `12 01 03 00 01 00 00 00 08 00 00 00` → `8` (Rotate 270° CW / 90° CCW)
@@ -163,13 +163,13 @@ Use these real measurements to write unit tests in `tests/raw-and-xmp.test.ts` (
 
 ### Expected Normalized & Pixel Outputs
 
-| Sample | Lens / Aperture | `Orientation` | `ExifImage` (raw) | Raw `0x1023` `[x, y]` | Upright Pixels | Normalized Upright `(ux, uy)` | Visual Subject Verified |
+| Sample | Lens / Aperture | `Orientation` | `ExifImage` (raw) | Raw `0x1023` `[x, y]` | Upright Pixels | Normalized Upright `(ux, uy)` | Verification Note |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `20261122-110.RAF` | 50mm `f/4.0` | `8` (270° CW) | `4416 × 2944` | `[2053, 857]` | `(857, 2363)` of `2944 × 4416` | `(0.2911, 0.5351)` | Top edge of sign's circular shadow; optical sharpness peaks at `Y = 54%` |
-| `20261122-100.RAF` | 50mm `f/4.0` | `8` (270° CW) | `4416 × 2944` | `[3129, 1625]` | `(1625, 1287)` of `2944 × 4416` | `(0.5520, 0.2914)` | Sharp wet grass/oak leaves (X-flip hits blurred foreground) |
-| `20261122-93.RAF` | 18mm `f/4.0` | `8` (270° CW) | `4416 × 2944` | `[2207, 2240]` | `(2240, 2209)` of `2944 × 4416` | `(0.7609, 0.5002)` | Lit wet ivy leaf (Y-flip hits pitch-black background) |
-| `20261122-11.RAF` | 50mm `f/2.8` | `1` (Normal) | `4416 × 2944` | `[1900, 2086]` | `(1900, 2086)` of `4416 × 2944` | `(0.4303, 0.7086)` | Sharp backlit twig (Y-flip hits bokeh balls; X-flip hits empty sky) |
-| `20261122-111.RAF` | 50mm `f/4.0` | `1` (Normal) | `4416 × 2944` | `[2207, 1472]` | `(2207, 1472)` of `4416 × 2944` | `(0.4998, 0.5000)` | Exact center AF point (col 12, row 8 of 25 × 17 grid) |
+| `sample-01.RAF` | 50mm `f/4.0` | `8` (270° CW) | `4416 × 2944` | `[2053, 857]` | `(857, 2363)` of `2944 × 4416` | `(0.2911, 0.5351)` | High-contrast edge; optical sharpness peaks at `Y = 54%` |
+| `sample-02.RAF` | 50mm `f/4.0` | `8` (270° CW) | `4416 × 2944` | `[3129, 1625]` | `(1625, 1287)` of `2944 × 4416` | `(0.5520, 0.2914)` | Sharp off-center subject (X-flip hits blurred foreground) |
+| `sample-03.RAF` | 18mm `f/4.0` | `8` (270° CW) | `4416 × 2944` | `[2207, 2240]` | `(2240, 2209)` of `2944 × 4416` | `(0.7609, 0.5002)` | Sharp off-center subject (Y-flip hits dark background) |
+| `sample-04.RAF` | 50mm `f/2.8` | `1` (Normal) | `4416 × 2944` | `[1900, 2086]` | `(1900, 2086)` of `4416 × 2944` | `(0.4303, 0.7086)` | Shallow-DoF subject (Y-flip hits out-of-focus background; X-flip hits empty region) |
+| `sample-05.RAF` | 50mm `f/4.0` | `1` (Normal) | `4416 × 2944` | `[2207, 1472]` | `(2207, 1472)` of `4416 × 2944` | `(0.4998, 0.5000)` | Exact center AF point (col 12, row 8 of 25 × 17 grid) |
 
 ### X-T5 425-Point AF Grid Sanity Formula (4416 × 2944 preview space)
 Across all 114 captures in the test shoot, every recorded `[rawX, rawY]` fit the 25 × 17 AF grid (`col ∈ 0..24`, `row ∈ 0..16`, center `(12, 8)`) within `1.50 px` in X and `0.88 px` in Y:

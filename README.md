@@ -1,5 +1,7 @@
 # PhotoCull — Ultra-Fast RAW Photo Culling Desktop App (Electron)
 
+> **Personal project — shared as-is.** This is a personal tool built for my own workflow and is not actively maintained for external users. Feel free to use or fork it under the [MIT License](./LICENSE), but issues, feature requests, and pull requests are not monitored. Because the app writes `.xmp` sidecars and can move or trash files on disk, always keep backups of your photos.
+
 A lightweight, blazingly fast, keyboard-first **Electron desktop application** for photographers. Open any local folder, external SSD, or SD card of thousands of RAW/JPEG images directly (zero catalog/import step), flip through frames with zero perceptible lag, verify 100%/200% sharpness, rate shots 1–5 stars, and sync clean standard `xmp:Rating` sidecars seamlessly with **Lightroom Classic**, **Capture One**, and **Darktable**.
 
 ## Desktop Architecture & Why It's Fast

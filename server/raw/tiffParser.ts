@@ -6,6 +6,11 @@ import {
   readUInt32,
   readUInt64AsNumber,
 } from './binaryReader.js';
+import {
+  finalizeFujifilmFocus,
+  parseFujifilmMakerNote,
+  type RawFujifilmFocus,
+} from './focusPoints.js';
 import { type JpegCandidate, probeJpegCandidate } from './jpegMeta.js';
 
 export interface TiffParseResult {
@@ -65,11 +70,14 @@ function cleanAscii(buf: Buffer): string {
 export async function parseTiffContainer(
   reader: BinaryReader,
   baseOffset = 0,
-  options: { maxIfds?: number } = {},
+  options: { maxIfds?: number; fallbackRefWidth?: number; fallbackRefHeight?: number } = {},
 ): Promise<TiffParseResult> {
   const maxIfds = options.maxIfds ?? 48;
   const candidates: JpegCandidate[] = [];
   const exif: ExifData = {};
+  let exifImageWidth = 0;
+  let exifImageHeight = 0;
+  let fujiFocusRaw: RawFujifilmFocus | null = null;
 
   const hdr = await reader.readSlice(baseOffset, 16);
   if (hdr.length < 8) return { candidates, exif };
@@ -288,11 +296,24 @@ export async function parseTiffContainer(
       if (cand) candidates.push(cand);
     }
 
-    // Extract JPEG candidate 4: Olympus MakerNote (0x927C) -> PreviewImageStart/Length or CameraSettings IFD
+    // Extract JPEG candidate 4: MakerNote (0x927C) -> Olympus PreviewImage / Fujifilm Focus Metadata
     const makerNoteEntry = entries.get(0x927c);
     if (makerNoteEntry && makerNoteEntry.totalBytes > 16) {
       const mnOffset = baseOffset + makerNoteEntry.valueOrOffset;
       await parseOlympusMakerNote(reader, mnOffset, makerNoteEntry.totalBytes, candidates);
+      if (!fujiFocusRaw) {
+        fujiFocusRaw = await parseFujifilmMakerNote(reader, mnOffset, makerNoteEntry.totalBytes);
+      }
+    }
+
+    // Extract EXIF preview reference dimensions (ExifImageWidth 0xA002 / ExifImageHeight 0xA003)
+    if (!exifImageWidth && entries.has(0xa002)) {
+      const v = (await readUIntArray(entries.get(0xa002)!))[0];
+      if (v > 0) exifImageWidth = v;
+    }
+    if (!exifImageHeight && entries.has(0xa003)) {
+      const v = (await readUIntArray(entries.get(0xa003)!))[0];
+      if (v > 0) exifImageHeight = v;
     }
 
     // Extract EXIF Metadata tags
@@ -345,6 +366,14 @@ export async function parseTiffContainer(
       const s = cleanAscii(await readEntryBytes(entry));
       if (s) exif.dateTimeOriginal = s;
     }
+  }
+
+  // Finalize vendor focus metadata after all IFDs have been read so Orientation and ExifImage dims are known
+  if (fujiFocusRaw) {
+    const refW = exifImageWidth || options.fallbackRefWidth || 0;
+    const refH = exifImageHeight || options.fallbackRefHeight || 0;
+    const focus = finalizeFujifilmFocus(fujiFocusRaw, refW, refH, exif.orientation ?? 1);
+    if (focus) exif.focus = focus;
   }
 
   return { candidates, exif };

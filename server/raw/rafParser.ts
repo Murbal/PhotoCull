@@ -45,7 +45,11 @@ export async function parseRafContainer(reader: BinaryReader): Promise<RafParseR
     const jpegHead = await reader.readSlice(jpegOffset, Math.min(jpegLength, 131072));
     const app1 = findJpegExifApp1(jpegHead);
     if (app1) {
-      const tiffRes = await parseTiffContainer(reader, jpegOffset + app1.offset, { maxIfds: 8 });
+      const tiffRes = await parseTiffContainer(reader, jpegOffset + app1.offset, {
+        maxIfds: 8,
+        fallbackRefWidth: mainCand?.width,
+        fallbackRefHeight: mainCand?.height,
+      });
       exif = tiffRes.exif;
       // Embedded IFD1 thumbnail inside APP1 makes contact sheet thumbnails ultra-fast
       for (const c of tiffRes.candidates) {

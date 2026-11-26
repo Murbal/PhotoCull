@@ -32,7 +32,8 @@ const SHORTCUT_GROUPS: { title: string; rows: [string, string][] }[] = [
   {
     title: 'Focus Check & Inspection',
     rows: [
-      ['Z  or  Space  or  Click', 'Toggle 100% (1:1) Focus Zoom'],
+      ['Space  or  Z', 'Zoom 100% to Focus Point (or Center)'],
+      ['Click', 'Toggle 100% (1:1) Zoom at Cursor'],
       ['Shift + Z', 'Toggle 200% Pixel Zoom'],
       ['Drag  (when zoomed)', 'Pan image (synced in 2-Up Compare)'],
       ['I', 'Toggle HUD / EXIF / RGB Histogram'],

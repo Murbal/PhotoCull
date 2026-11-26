@@ -1,5 +1,38 @@
 export type PhotoKind = 'raw' | 'image' | 'raw+jpeg';
 
+export interface FocusPoint {
+  /** Normalized horizontal center in upright display space [0..1] (left -> right) */
+  x: number;
+  /** Normalized vertical center in upright display space [0..1] (top -> bottom) */
+  y: number;
+  /** Optional normalized box width/height in upright display space (when known) */
+  width?: number;
+  height?: number;
+  /** Whether this point was actively locked/selected vs. secondary/face box */
+  active?: boolean;
+  /** Optional kind for styling (AF point, zone, detected face/eye) */
+  kind?: 'af-point' | 'af-zone' | 'face' | 'eye';
+}
+
+export interface FocusMetadata {
+  /** Primary/selected focus points in normalized upright coordinates */
+  points: FocusPoint[];
+  /** Human-readable focus mode, e.g. "AF-S", "AF-C", "MF" */
+  mode?: string;
+  /** Human-readable AF area mode, e.g. "Single Point", "Zone", "Wide/Tracking" */
+  areaMode?: string;
+  /** True when camera reported focus lock / no focus warning */
+  locked?: boolean;
+  /** Raw vendor-specific reference size & unrotated coords for debugging/tests */
+  raw?: {
+    x: number;
+    y: number;
+    refWidth: number;
+    refHeight: number;
+    orientation: number;
+  };
+}
+
 export interface ExifData {
   make?: string;
   model?: string;
@@ -14,6 +47,7 @@ export interface ExifData {
   orientation?: number;       // 1..8 EXIF orientation
   width?: number;
   height?: number;
+  focus?: FocusMetadata;
 }
 
 export interface PhotoMetadata {

@@ -24,7 +24,11 @@ import type { HistogramData } from './engine/histogram.js';
 import { Toolbar } from './components/Toolbar.js';
 import { FilterBar } from './components/FilterBar.js';
 import { ContactSheet } from './components/ContactSheet.js';
-import { FIT_VIEWPORT, LoupeCanvas, type ViewportTransform } from './components/LoupeCanvas.js';
+import {
+  FIT_VIEWPORT,
+  LoupeCanvas,
+  type ViewportTransform,
+} from './components/LoupeCanvas.js';
 import { CompareView } from './components/CompareView.js';
 import { InfoHud } from './components/InfoHud.js';
 import { Filmstrip } from './components/Filmstrip.js';
@@ -599,7 +603,7 @@ export default function App() {
         return;
       }
 
-      // Zoom (Z or Space -> 100%, Shift+Z -> 200%)
+      // Zoom (Space or Z -> 100% centered on AF focus point when available, Shift+Z -> 200%)
       if (lower === 'z' || key === ' ') {
         if (viewMode === 'grid' && key === ' ') {
           e.preventDefault();
@@ -610,11 +614,27 @@ export default function App() {
           e.preventDefault();
           if (e.shiftKey && lower === 'z') {
             setViewport((v) =>
-              v.zoomMode === '200' ? FIT_VIEWPORT : { zoomMode: '200', scale: 2, panX: v.panX, panY: v.panY },
+              v.zoomMode === '200'
+                ? FIT_VIEWPORT
+                : {
+                    zoomMode: '200',
+                    scale: 2,
+                    panX: v.panX,
+                    panY: v.panY,
+                    ...(v.zoomMode === 'fit' || v.followFocus ? { followFocus: true } : {}),
+                  },
             );
           } else {
             setViewport((v) =>
-              v.zoomMode === 'fit' ? { zoomMode: '100', scale: 1, panX: 0, panY: 0 } : FIT_VIEWPORT,
+              v.zoomMode === 'fit'
+                ? {
+                    zoomMode: '100',
+                    scale: 1,
+                    panX: 0,
+                    panY: 0,
+                    followFocus: true,
+                  }
+                : FIT_VIEWPORT,
             );
           }
           return;
@@ -670,6 +690,7 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [
+    folder,
     showShortcuts,
     batchModalTab,
     showFolderPicker,

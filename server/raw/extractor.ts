@@ -159,7 +159,11 @@ export async function indexPhotoFile(filePath: string, knownMtimeMs?: number): P
         }
         const app1 = findJpegExifApp1(head);
         if (app1) {
-          const tiffRes = await parseTiffContainer(reader, app1.offset, { maxIfds: 8 });
+          const tiffRes = await parseTiffContainer(reader, app1.offset, {
+            maxIfds: 8,
+            fallbackRefWidth: dims?.width,
+            fallbackRefHeight: dims?.height,
+          });
           exif = { ...tiffRes.exif, width: exif.width, height: exif.height };
           candidates = tiffRes.candidates;
         }

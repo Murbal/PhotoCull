@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PhotoItem } from '../../shared/types.js';
+import type { ExifData, FocusPoint, PhotoItem } from '../../shared/types.js';
 import { type DecodedFrame, previewFrameCache } from '../engine/imageCache.js';
 import { computeHistogram, type HistogramData } from '../engine/histogram.js';
 
 export interface ViewportTransform {
   zoomMode: 'fit' | '100' | '200' | 'custom';
   scale: number;     // used when zoomMode === 'custom' (1.0 = 100% physical pixels)
-  panX: number;      // normalized offset relative to image center in image pixels
+  panX: number;      // offset relative to image center in upright image pixels
   panY: number;
+  /** When true, automatically center & clamp on the active photo's AF focus point (updates when switching photos) */
+  followFocus?: boolean;
 }
 
 export const FIT_VIEWPORT: ViewportTransform = {
@@ -16,6 +18,12 @@ export const FIT_VIEWPORT: ViewportTransform = {
   panX: 0,
   panY: 0,
 };
+
+export function getPrimaryFocusPoint(exif?: ExifData): FocusPoint | null {
+  const pts = exif?.focus?.points;
+  if (!pts || pts.length === 0) return null;
+  return pts.find((p) => p.active !== false) ?? pts[0] ?? null;
+}
 
 interface LoupeCanvasProps {
   folder: string;
@@ -166,6 +174,35 @@ export function LoupeCanvas({
     [viewport.zoomMode, viewport.scale],
   );
 
+  const clampPan = useCallback(
+    (panX: number, panY: number, scale: number, f: DecodedFrame): { panX: number; panY: number } => {
+      const dpr = window.devicePixelRatio || 1;
+      const physW = canvasSize.w * dpr;
+      const physH = canvasSize.h * dpr;
+      const maxX = Math.max(0, (f.width - physW / scale) / 2);
+      const maxY = Math.max(0, (f.height - physH / scale) / 2);
+      return {
+        panX: Math.max(-maxX, Math.min(maxX, panX)),
+        panY: Math.max(-maxY, Math.min(maxY, panY)),
+      };
+    },
+    [canvasSize],
+  );
+
+  const primaryFocus = getPrimaryFocusPoint(item?.exif);
+
+  const resolveEffectivePan = useCallback(
+    (vp: ViewportTransform, scale: number, f: DecodedFrame): { panX: number; panY: number } => {
+      if (vp.followFocus && vp.zoomMode !== 'fit' && primaryFocus) {
+        const targetPanX = (primaryFocus.x - 0.5) * f.width;
+        const targetPanY = (primaryFocus.y - 0.5) * f.height;
+        return clampPan(targetPanX, targetPanY, scale, f);
+      }
+      return { panX: vp.panX, panY: vp.panY };
+    },
+    [clampPan, primaryFocus],
+  );
+
   // Draw frame to GPU canvas
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -191,9 +228,10 @@ export function LoupeCanvas({
     const effScale = computeEffectiveScale(frame, canvasSize.w, canvasSize.h, dpr);
     const drawW = frame.width * effScale;
     const drawH = frame.height * effScale;
+    const { panX: effPanX, panY: effPanY } = resolveEffectivePan(viewport, effScale, frame);
 
-    const cx = physW / 2 - viewport.panX * effScale;
-    const cy = physH / 2 - viewport.panY * effScale;
+    const cx = physW / 2 - effPanX * effScale;
+    const cy = physH / 2 - effPanY * effScale;
     const dx = Math.round(cx - drawW / 2);
     const dy = Math.round(cy - drawH / 2);
 
@@ -213,6 +251,46 @@ export function LoupeCanvas({
       ctx.drawImage(clippingCacheRef.current.canvas, dx, dy, drawW, drawH);
     }
 
+    // Open-center corner-bracket reticle when zoomed in on the active photo's AF focus point
+    if (viewport.zoomMode !== 'fit' && viewport.followFocus && primaryFocus) {
+      const fx = dx + primaryFocus.x * drawW;
+      const fy = dy + primaryFocus.y * drawH;
+      const half = 22 * dpr;
+      const arm = 8 * dpr;
+      const color = item?.exif?.focus?.locked === false ? 'rgba(245, 158, 11, 0.9)' : 'rgba(52, 211, 153, 0.9)';
+
+      const drawCorners = () => {
+        ctx.beginPath();
+        // Top-left
+        ctx.moveTo(fx - half, fy - half + arm);
+        ctx.lineTo(fx - half, fy - half);
+        ctx.lineTo(fx - half + arm, fy - half);
+        // Top-right
+        ctx.moveTo(fx + half - arm, fy - half);
+        ctx.lineTo(fx + half, fy - half);
+        ctx.lineTo(fx + half, fy - half + arm);
+        // Bottom-right
+        ctx.moveTo(fx + half, fy + half - arm);
+        ctx.lineTo(fx + half, fy + half);
+        ctx.lineTo(fx + half - arm, fy + half);
+        // Bottom-left
+        ctx.moveTo(fx - half + arm, fy + half);
+        ctx.lineTo(fx - half, fy + half);
+        ctx.lineTo(fx - half, fy + half - arm);
+        ctx.stroke();
+      };
+
+      ctx.save();
+      ctx.lineCap = 'square';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.lineWidth = 3 * dpr;
+      drawCorners();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5 * dpr;
+      drawCorners();
+      ctx.restore();
+    }
+
     // Subtle minimap navigator when zoomed in beyond viewport bounds
     if (viewport.zoomMode !== 'fit' && (drawW > physW + 4 || drawH > physH + 4)) {
       const mapMaxW = 132 * dpr;
@@ -230,6 +308,19 @@ export function LoupeCanvas({
       ctx.drawImage(frame.bitmap, mx, my, mw, mh);
       ctx.globalAlpha = 1;
 
+      // Focus point dot inside minimap
+      if (primaryFocus) {
+        const fpx = mx + primaryFocus.x * mw;
+        const fpy = my + primaryFocus.y * mh;
+        ctx.beginPath();
+        ctx.arc(fpx, fpy, 2.5 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = item?.exif?.focus?.locked === false ? '#f59e0b' : '#34d399';
+        ctx.fill();
+        ctx.lineWidth = 1 * dpr;
+        ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+        ctx.stroke();
+      }
+
       // Viewport rectangle inside minimap
       const visLeft = Math.max(0, (0 - dx) / drawW);
       const visTop = Math.max(0, (0 - dy) / drawH);
@@ -246,22 +337,7 @@ export function LoupeCanvas({
       );
       ctx.restore();
     }
-  }, [frame, canvasSize, viewport, showClipping, computeEffectiveScale]);
-
-  const clampPan = useCallback(
-    (panX: number, panY: number, scale: number, f: DecodedFrame): { panX: number; panY: number } => {
-      const dpr = window.devicePixelRatio || 1;
-      const physW = canvasSize.w * dpr;
-      const physH = canvasSize.h * dpr;
-      const maxX = Math.max(0, (f.width - physW / scale) / 2);
-      const maxY = Math.max(0, (f.height - physH / scale) / 2);
-      return {
-        panX: Math.max(-maxX, Math.min(maxX, panX)),
-        panY: Math.max(-maxY, Math.min(maxY, panY)),
-      };
-    },
-    [canvasSize],
-  );
+  }, [frame, canvasSize, viewport, showClipping, item?.exif, computeEffectiveScale, resolveEffectivePan]);
 
   // Single-click toggles 100% focus zoom at exact clicked image pixel (or back to Fit)
   const toggleZoomAtClientPoint = useCallback(
@@ -298,13 +374,16 @@ export function LoupeCanvas({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || !frame) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    const dpr = window.devicePixelRatio || 1;
+    const effScale = computeEffectiveScale(frame, canvasSize.w, canvasSize.h, dpr);
+    const { panX: origPanX, panY: origPanY } = resolveEffectivePan(viewport, effScale, frame);
     dragRef.current = {
       active: true,
       moved: false,
       startX: e.clientX,
       startY: e.clientY,
-      origPanX: viewport.panX,
-      origPanY: viewport.panY,
+      origPanX,
+      origPanY,
     };
   };
 
@@ -323,7 +402,8 @@ export function LoupeCanvas({
     const nextPanY = dragRef.current.origPanY - (dy * dpr) / effScale;
     const clamped = clampPan(nextPanX, nextPanY, effScale, frame);
     onViewportChange({
-      ...viewport,
+      zoomMode: viewport.zoomMode,
+      scale: viewport.scale,
       panX: clamped.panX,
       panY: clamped.panY,
     });
@@ -358,16 +438,18 @@ export function LoupeCanvas({
       return;
     }
 
-    const clamped = clampPan(viewport.panX, viewport.panY, nextScale, frame);
+    const { panX: basePanX, panY: basePanY } = resolveEffectivePan(viewport, currentScale, frame);
+    const clamped = clampPan(basePanX, basePanY, nextScale, frame);
     onViewportChange({
       zoomMode: 'custom',
       scale: nextScale,
       panX: clamped.panX,
       panY: clamped.panY,
+      ...(viewport.followFocus ? { followFocus: true } : {}),
     });
   };
 
-  const zoomLabel =
+  const baseZoomLabel =
     viewport.zoomMode === 'fit'
       ? 'FIT'
       : viewport.zoomMode === '100'
@@ -375,6 +457,10 @@ export function LoupeCanvas({
         : viewport.zoomMode === '200'
           ? '200%'
           : `${Math.round(viewport.scale * 100)}%`;
+  const zoomLabel =
+    viewport.followFocus && primaryFocus && viewport.zoomMode !== 'fit'
+      ? `${baseZoomLabel} · AF`
+      : baseZoomLabel;
 
   return (
     <div

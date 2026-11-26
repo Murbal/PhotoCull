@@ -40,7 +40,7 @@ bun run start
 # Package installable desktop binaries (current OS: Linux AppImage/deb, macOS dmg, Windows nsis/portable)
 bun run package
 
-# Package for Windows (x64 — NSIS + Portable .exe on Windows/Wine, or ready-to-run .zip + PhotoCull.exe on Linux/WSL2 without Wine)
+# Package for Windows (x64 — NSIS installer + portable .exe; under WSL2 without Wine it builds on the Windows host, which needs Node; on other Linux/macOS without Wine, a ready-to-run .zip)
 bun run package:win
 # Or individual Windows targets:
 bun run package:win:zip

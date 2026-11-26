@@ -28,28 +28,35 @@
     "package:win:dir": "bun run scripts/package-win.ts --dir",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "demo-shoot": "bun run scripts/generate-demo.ts"
+    "demo-shoot": "bun run scripts/generate-demo.ts",
+    "generate:icons": "bun run scripts/generate-icons.ts"
   },
   "build": {
     "appId": "app.photocull.desktop",
     "productName": "PhotoCull",
     "directories": {
+      "buildResources": "build",
       "output": "release"
     },
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
+      "build/icon.png",
+      "build/icon.ico",
       "package.json"
     ],
     "linux": {
+      "icon": "build/icon.png",
       "target": ["AppImage", "deb"],
       "category": "Graphics"
     },
     "mac": {
+      "icon": "build/icon.icns",
       "target": ["dmg", "zip"],
       "category": "public.app-category.photography"
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": ["nsis", "portable"]
     }
   },

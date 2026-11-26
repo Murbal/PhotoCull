@@ -11,7 +11,6 @@ import {
   Maximize2,
   PanelBottom,
   RefreshCw,
-  Sparkles,
   Trash2,
 } from 'lucide-react';
 import type { ViewMode } from '../../shared/types.js';
@@ -81,9 +80,12 @@ export function Toolbar({
       {/* Left: Brand & Folder */}
       <div className="flex items-center gap-2 min-w-0 electron-no-drag">
         <div className="flex items-center gap-1.5 font-semibold tracking-tight text-neutral-100 shrink-0">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-400">
-            <Sparkles className="h-3.5 w-3.5" />
-          </span>
+          <img
+            src="./icon.svg"
+            alt=""
+            className="h-6 w-6 rounded-md shrink-0"
+            draggable={false}
+          />
           <span className="hidden sm:inline">PhotoCull</span>
         </div>
 

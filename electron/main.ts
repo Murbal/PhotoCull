@@ -354,6 +354,8 @@ async function createMainWindow(): Promise<void> {
   const bounds = await loadWindowBounds();
 
   const appRoot = app.getAppPath();
+  const iconFile = process.platform === 'win32' ? 'icon.ico' : 'icon.png';
+  const iconPath = path.join(appRoot, 'build', iconFile);
 
   const win = new BrowserWindow({
     width: bounds.width,
@@ -365,6 +367,7 @@ async function createMainWindow(): Promise<void> {
     show: false,
     backgroundColor: '#0d0d0f',
     darkTheme: true,
+    icon: iconPath,
     title: 'PhotoCull — Ultra-Fast RAW Photo Culling',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
